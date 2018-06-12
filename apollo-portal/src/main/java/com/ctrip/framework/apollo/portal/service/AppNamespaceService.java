@@ -3,7 +3,6 @@ package com.ctrip.framework.apollo.portal.service;
 import com.ctrip.framework.apollo.common.entity.App;
 import com.ctrip.framework.apollo.common.entity.AppNamespace;
 import com.ctrip.framework.apollo.common.exception.BadRequestException;
-import com.ctrip.framework.apollo.common.exception.ServiceException;
 import com.ctrip.framework.apollo.core.ConfigConsts;
 import com.ctrip.framework.apollo.core.enums.ConfigFileFormat;
 import com.ctrip.framework.apollo.core.utils.StringUtils;
@@ -46,18 +45,19 @@ public class AppNamespaceService {
 
   @Transactional
   public void createDefaultAppNamespace(String appId) {
-    if (!isAppNamespaceNameUnique(appId, appId)) {
-      throw new ServiceException("appnamespace not unique");
+    if (!isAppNamespaceNameUnique(appId, ConfigConsts.NAMESPACE_APPLICATION)) {
+      throw new BadRequestException(String.format("App already has application namespace. AppId = %s", appId));
     }
+
     AppNamespace appNs = new AppNamespace();
     appNs.setAppId(appId);
     appNs.setName(ConfigConsts.NAMESPACE_APPLICATION);
     appNs.setComment("default app namespace");
     appNs.setFormat(ConfigFileFormat.Properties.getValue());
-
     String userId = userInfoHolder.getUser().getUserId();
     appNs.setDataChangeCreatedBy(userId);
     appNs.setDataChangeLastModifiedBy(userId);
+
     appNamespaceRepository.save(appNs);
   }
 
